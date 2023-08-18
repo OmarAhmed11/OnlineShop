@@ -1,3 +1,5 @@
+using Core.Interfaces;
+using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using OnlineShop.Infrastructure.Data;
 
@@ -13,7 +15,7 @@ builder.Services.AddDbContext<StoreContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
-
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -29,4 +31,16 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+using var Scope = app.Services.CreateScope();
+var services = Scope.ServiceProvider;
+var context = services.GetRequiredService<StoreContext>();
+var Logger = services.GetRequiredService<ILogger<Program>>();
+try
+{
+    await context.Database.MigrateAsync();
+    await StoreContextSeed.SeedAsync(context);
+} catch (Exception ex)
+{
+    Logger.LogError("An Error Occured during Migration");
+}
 app.Run();

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Core.Interfaces;
+using Infrastructure.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineShop.Core.Entities;
@@ -10,23 +12,24 @@ namespace OnlineShop.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly StoreContext _context;
+        private readonly IProductRepository _productRepository;
 
-        public ProductsController(StoreContext storeContext)
+        public ProductsController(IProductRepository productRepository)
         {
-            _context = storeContext;
+
+            _productRepository = productRepository;
         }
         [HttpGet]
-        public async Task<ActionResult<List<Product>>> getProducts()
+        public async Task<ActionResult<IReadOnlyList<Product>>> getProducts()
         {
-            var products = await _context.Products.ToListAsync();
-            return Ok(products);
+            var Products = await _productRepository.GetProductsAsync();
+            return Ok(Products);
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> getProduct(int id)
         {
-            var prod = await _context.Products.FindAsync(id);
-            return Ok(prod);
+            var Product = await _productRepository.GetProductByIdAsync(id);
+            return Ok(Product);
         }
     }
 }
