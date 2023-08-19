@@ -1,9 +1,12 @@
-﻿using Core.Interfaces;
+﻿using AutoMapper;
+using Core.Interfaces;
+using Core.Specifications;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineShop.Core.Entities;
+using OnlineShop.Dtos;
 using OnlineShop.Infrastructure.Data;
 
 namespace OnlineShop.Controllers
@@ -12,24 +15,29 @@ namespace OnlineShop.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly IProductRepository _productRepository;
+        private readonly IGenericRepository<Product> _repo;
+        private readonly IMapper _mapper;
 
-        public ProductsController(IProductRepository productRepository)
+        public ProductsController(IGenericRepository<Product> Repo,
+            IMapper mapper)
         {
-
-            _productRepository = productRepository;
+            _repo = Repo;
+            _mapper = mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<Product>>> getProducts()
+        public async Task<ActionResult<IReadOnlyList<ProductToReturnDto>>> GetProducts()
         {
-            var Products = await _productRepository.GetProductsAsync();
-            return Ok(Products);
+            var spec = new ProductsWithTypesAndBrandsSpecification();
+            var Products = await _repo.ListAllAsync(spec);
+            return Ok(_mapper.Map<IReadOnlyList<Product>,
+                IReadOnlyList<ProductToReturnDto>>(Products));
         }
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> getProduct(int id)
+        public async Task<ActionResult<ProductToReturnDto>> GetProduct(int id)
         {
-            var Product = await _productRepository.GetProductByIdAsync(id);
-            return Ok(Product);
+            var spec = new ProductsWithTypesAndBrandsSpecification(id);
+            var Product = await _repo.GetEntityWithSpec(spec);
+            return _mapper.Map<Product, ProductToReturnDto>(Product);
         }
     }
 }
