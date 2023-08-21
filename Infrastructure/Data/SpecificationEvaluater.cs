@@ -19,6 +19,7 @@ namespace Infrastructure.Data
             {
                 query = query.Where(spec.Criteria);
             }
+            // Add Includes to One Object
             query = spec.Includes.Aggregate(query, (current, include) => current.Include(include));
             return query;
         }

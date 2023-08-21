@@ -7,13 +7,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineShop.Core.Entities;
 using OnlineShop.Dtos;
+using OnlineShop.Errors;
 using OnlineShop.Infrastructure.Data;
 
 namespace OnlineShop.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProductsController : ControllerBase
+
+    public class ProductsController : BaseApiController
     {
         private readonly IGenericRepository<Product> _repo;
         private readonly IMapper _mapper;
@@ -37,7 +37,12 @@ namespace OnlineShop.Controllers
         {
             var spec = new ProductsWithTypesAndBrandsSpecification(id);
             var Product = await _repo.GetEntityWithSpec(spec);
+            if (Product == null)
+            {
+                return NotFound(new ApiResponse(404));
+            }
             return _mapper.Map<Product, ProductToReturnDto>(Product);
+
         }
     }
 }

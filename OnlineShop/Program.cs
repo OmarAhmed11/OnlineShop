@@ -2,6 +2,7 @@ using Core.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using OnlineShop.Infrastructure.Data;
+using OnlineShop.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,18 +16,25 @@ builder.Services.AddDbContext<StoreContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// used to handle errors with erros controller as if exception happened it
+// return to this middleware to catch the error
+app.UseMiddleware<ExceptionMiddleware>();
+app.UseStatusCodePagesWithReExecute("/errors/{0}");
+
+
 app.UseStaticFiles();
 app.UseHttpsRedirection();
 
@@ -34,6 +42,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+
+//This Code to check if database exist ot not if it is exist will continue
+//if it doesnot exist it will create it and fill it with seedData
 using var Scope = app.Services.CreateScope();
 var services = Scope.ServiceProvider;
 var context = services.GetRequiredService<StoreContext>();
