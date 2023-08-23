@@ -25,9 +25,10 @@ namespace OnlineShop.Controllers
             _mapper = mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<ProductToReturnDto>>> GetProducts()
+        public async Task<ActionResult<IReadOnlyList<ProductToReturnDto>>> GetProducts(string sort,
+            int? brandId, int? typeId)
         {
-            var spec = new ProductsWithTypesAndBrandsSpecification();
+            var spec = new ProductsWithTypesAndBrandsSpecification(sort, brandId, typeId);
             var Products = await _repo.ListAllAsync(spec);
             return Ok(_mapper.Map<IReadOnlyList<Product>,
                 IReadOnlyList<ProductToReturnDto>>(Products));
