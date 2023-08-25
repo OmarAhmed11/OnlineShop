@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using OnlineShop.Core.Entities;
 using OnlineShop.Dtos;
 using OnlineShop.Errors;
+using OnlineShop.Helpers;
 using OnlineShop.Infrastructure.Data;
 
 namespace OnlineShop.Controllers
@@ -25,13 +26,17 @@ namespace OnlineShop.Controllers
             _mapper = mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<ProductToReturnDto>>> GetProducts(string sort,
-            int? brandId, int? typeId)
+        public async Task<ActionResult<Pagination<ProductToReturnDto>>> GetProducts([FromQuery] ProductSpecificationsParameters PSP)
         {
-            var spec = new ProductsWithTypesAndBrandsSpecification(sort, brandId, typeId);
+            var spec = new ProductsWithTypesAndBrandsSpecification(PSP);
+            var CountSpec = new ProductWithFiltersForCountSpecification(PSP);
+            var totalItems =  await _repo.CountAsync(CountSpec);
             var Products = await _repo.ListAllAsync(spec);
-            return Ok(_mapper.Map<IReadOnlyList<Product>,
-                IReadOnlyList<ProductToReturnDto>>(Products));
+            var Data = _mapper.Map<IReadOnlyList<Product>,
+                IReadOnlyList<ProductToReturnDto>>(Products);
+            return Ok( new Pagination<ProductToReturnDto> (
+                PSP.PageIndex, PSP.PageSize, totalItems, Data
+                ));
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductToReturnDto>> GetProduct(int id)

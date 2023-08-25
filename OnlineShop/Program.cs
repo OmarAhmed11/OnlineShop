@@ -18,7 +18,13 @@ builder.Services.AddDbContext<StoreContext>(options =>
 });
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
+builder.Services.AddCors(option =>
+{
+    option.AddPolicy("CorsPolicy", policy =>
+    {
+        policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200");
+    });
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -36,12 +42,12 @@ app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
 
 app.UseStaticFiles();
+app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
-
 
 //This Code to check if database exist ot not if it is exist will continue
 //if it doesnot exist it will create it and fill it with seedData
@@ -57,4 +63,6 @@ try
 {
     Logger.LogError("An Error Occured during Migration");
 }
+
+
 app.Run();

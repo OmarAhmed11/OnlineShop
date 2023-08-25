@@ -10,16 +10,20 @@ namespace Core.Specifications
 {
     public class ProductsWithTypesAndBrandsSpecification : BaseSpecification<Product>
     {
-        public ProductsWithTypesAndBrandsSpecification(string sort,int? brandId, int? typeId)
+        public ProductsWithTypesAndBrandsSpecification(ProductSpecificationsParameters PSP)
             :base(x=> 
-            (!brandId.HasValue ||x.ProductBrandId == brandId) && 
-            (!typeId.HasValue || x.ProductTypeId == typeId))
+            (string.IsNullOrEmpty(PSP.Search) || x.Name.ToLower().Contains(PSP.Search)) &&
+
+            (!PSP.BrandId.HasValue ||x.ProductBrandId == PSP.BrandId) && 
+            (!PSP.TypeId.HasValue || x.ProductTypeId == PSP.TypeId))
         {
             AddInclude(x => x.ProductType);
             AddInclude(x => x.ProductBrand);
-            if(!string.IsNullOrEmpty(sort))
+            ApplyPaging(PSP.PageSize * (PSP.PageIndex - 1), PSP.PageSize);
+
+            if (!string.IsNullOrEmpty(PSP.sort))
             {
-                switch (sort)
+                switch (PSP.sort)
                 {
                     case "IdAsc": AddOrderby(p => p.Id);
                         break;
