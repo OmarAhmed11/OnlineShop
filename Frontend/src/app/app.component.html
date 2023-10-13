@@ -1,1 +1,13 @@
 
+<app-nav-bar></app-nav-bar>
+
+<div class="container" style="margin-top: 140px;">
+  {{title}}
+<div>{{prodCount}}</div>
+
+  <div *ngFor="let prod of products">
+    <div>{{prod.name}}</div>
+  </div>
+</div>
+
+
